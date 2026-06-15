@@ -1,0 +1,28 @@
+name: Kassa Report
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Каждые 5 минут проверяет новые отчёты
+  workflow_dispatch:
+
+jobs:
+  send-kassa-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: npm install
+      - run: node kassa-report.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_KASSA: ${{ secrets.TG_CHAT_KASSA }}
+          TG_THREAD_KASSA: ${{ secrets.TG_THREAD_KASSA }}
+          TG_CHAT_IMRAN: ${{ secrets.TG_CHAT_IMRAN }}
+          TG_THREAD_IMRAN: ${{ secrets.TG_THREAD_IMRAN }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          GOOGLE_SHEET_ARBAT: ${{ secrets.GOOGLE_SHEET_ARBAT }}
+          GOOGLE_SHEET_IMRAN: ${{ secrets.GOOGLE_SHEET_IMRAN }}
