@@ -3,8 +3,8 @@ const { google } = require('googleapis');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
-const SHEET_ARBAT = process.env.GOOGLE_SHEET_ARBAT;
-const SHEET_IMRAN = process.env.GOOGLE_SHEET_IMRAN;
+const SHEET_ARBAT = process.env.GOOGLE_SHEET_ACT_ARBAT;
+const SHEET_IMRAN = process.env.GOOGLE_SHEET_ACT_IMRAN;
 
 function fmt3(n) { return parseFloat(n||0).toFixed(3); }
 function fmtDate(d) {

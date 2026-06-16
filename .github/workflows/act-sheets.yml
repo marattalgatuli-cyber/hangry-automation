@@ -19,5 +19,5 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-          GOOGLE_SHEET_ARBAT: ${{ secrets.GOOGLE_SHEET_ARBAT }}
-          GOOGLE_SHEET_IMRAN: ${{ secrets.GOOGLE_SHEET_IMRAN }}
+          GOOGLE_SHEET_ACT_ARBAT: ${{ secrets.GOOGLE_SHEET_ACT_ARBAT }}
+          GOOGLE_SHEET_ACT_IMRAN: ${{ secrets.GOOGLE_SHEET_ACT_IMRAN }}
