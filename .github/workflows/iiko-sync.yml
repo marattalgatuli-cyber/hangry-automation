@@ -21,6 +21,8 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          IIKO_API_LOGIN: ${{ secrets.IIKO_API_LOGIN }}
+          IIKO_API_KEY: ${{ secrets.IIKO_API_KEY }}
+          IIKO_APP_ID: ${{ secrets.IIKO_APP_ID }}
+          IIKO_CLIENT_SECRET: ${{ secrets.IIKO_CLIENT_SECRET }}
           IIKO_ORG_ID: ${{ secrets.IIKO_ORG_ID }}
           SYNC_DATE: ${{ github.event.inputs.sync_date }}
