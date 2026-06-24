@@ -24,13 +24,13 @@ async function main() {
   console.log(`Syncing iiko data for date: ${date}`);
 
   // 1. Get token
-  const tokenRes = await fetch('https://api-ru.iiko.services/api/1/access_token', {
+  const tokenRes = await fetch('https://api-ru.iiko.services/api/v2/access_token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ apiLogin: IIKO_API_LOGIN })
   });
   const tokenData = await tokenRes.json();
-  const token = tokenData.token;
+  const token = tokenData.token || tokenData.accessToken;
   if (!token) throw new Error('No token: ' + JSON.stringify(tokenData));
   console.log('✅ Token received');
 
