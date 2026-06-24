@@ -22,12 +22,8 @@ async function sbUpsert(table, data) {
   return res.json();
 }
 
-async function main() {
-  const date = process.env.SYNC_DATE || new Date().toISOString().split('T')[0];
-  console.log(`Syncing iiko data for date: ${date}`);
-
-  // 1. Get token via v2
-  const tokenRes = await fetch(`${BASE}/api/v2/access_token`, {
+async function getToken() {
+  const res = await fetch(`${BASE}/api/v2/access_token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -36,74 +32,54 @@ async function main() {
       clientSecret: IIKO_CLIENT_SECRET
     })
   });
-  const tokenData = await tokenRes.json();
-  console.log('Token response:', JSON.stringify(tokenData).slice(0, 200));
-  const token = tokenData.token || tokenData.accessToken;
-  if (!token) throw new Error('No token: ' + JSON.stringify(tokenData));
+  const data = await res.json();
+  const token = data.token || data.accessToken;
+  if (!token) throw new Error('No token: ' + JSON.stringify(data));
+  return token;
+}
+
+async function main() {
+  const date = process.env.SYNC_DATE || new Date().toISOString().split('T')[0];
+  console.log(`Syncing iiko data for date: ${date}`);
+
+  const token = await getToken();
   console.log('✅ Token received');
 
-  // 2. Get payment report
-  const dateFrom = `${date} 00:00:00.000`;
-  const dateTo = `${date} 23:59:59.000`;
-
-  const reportRes = await fetch(`${BASE}/api/1/reports/olap`, {
+  // Try cash shifts endpoint
+  const shiftsRes = await fetch(`${BASE}/api/1/cashshifts`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     },
     body: JSON.stringify({
-      reportType: 'SALES',
-      buildSummary: true,
-      groupByRowFields: ['PayTypes.PaymentType', 'Department'],
-      aggregateFields: ['PayTypes.Sum'],
-      filters: {
-        'OpenDate.Typed': {
-          filterType: 'DateRange',
-          periodType: 'CUSTOM',
-          from: dateFrom,
-          to: dateTo
-        }
-      },
-      organizationIds: [IIKO_ORG_ID]
+      organizationIds: [IIKO_ORG_ID],
+      statuses: ['CLOSED'],
+      openDateFrom: `${date} 00:00:00.000`,
+      openDateTo: `${date} 23:59:59.000`
     })
   });
 
-  const reportData = await reportRes.json();
-  console.log('Report:', JSON.stringify(reportData).slice(0, 500));
+  const shiftsData = await shiftsRes.json();
+  console.log('Shifts response:', JSON.stringify(shiftsData).slice(0, 800));
 
-  const rows = reportData.data || reportData.rows || [];
-  console.log(`Found ${rows.length} rows`);
-
-  // 3. Parse by department and payment type
-  const byDept = {};
-  rows.forEach(row => {
-    const payType = (row[0] || '').toLowerCase();
-    const dept = (row[1] || 'unknown');
-    const sum = parseFloat(row[2] || 0);
-    if (!byDept[dept]) byDept[dept] = { cash:0, kaspiy:0, halyk:0, bck:0, wolt:0, yandex:0, glovo:0, miras:0 };
-    if (payType.includes('нал') || payType.includes('cash')) byDept[dept].cash += sum;
-    else if (payType.includes('каспи') || payType.includes('kaspi')) byDept[dept].kaspiy += sum;
-    else if (payType.includes('халык') || payType.includes('halyk')) byDept[dept].halyk += sum;
-    else if (payType.includes('бцк') || payType.includes('bck')) byDept[dept].bck += sum;
-    else if (payType.includes('wolt') || payType.includes('волт')) byDept[dept].wolt += sum;
-    else if (payType.includes('яндекс') || payType.includes('yandex')) byDept[dept].yandex += sum;
-    else if (payType.includes('glovo') || payType.includes('глово')) byDept[dept].glovo += sum;
-    else if (payType.includes('мирас') || payType.includes('miras')) byDept[dept].miras += sum;
+  // Try orders endpoint
+  const ordersRes = await fetch(`${BASE}/api/1/deliveries/by_delivery_date_and_status`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      organizationIds: [IIKO_ORG_ID],
+      deliveryDateFrom: `${date} 00:00:00.000`,
+      deliveryDateTo: `${date} 23:59:59.000`
+    })
   });
+  const ordersData = await ordersRes.json();
+  console.log('Orders response:', JSON.stringify(ordersData).slice(0, 300));
 
-  console.log('Parsed:', JSON.stringify(byDept));
-
-  // 4. Save to Supabase
-  for (const [dept, amounts] of Object.entries(byDept)) {
-    await sbUpsert('iiko_sync', {
-      sync_date: date, dept_name: dept, ...amounts,
-      synced_at: new Date().toISOString()
-    });
-    console.log(`✅ Saved: ${dept}`);
-  }
-
-  console.log('✅ Done');
+  console.log('✅ Done - check logs above to see available data');
 }
 
 main().catch(e => { console.error('Error:', e.message); process.exit(1); });
