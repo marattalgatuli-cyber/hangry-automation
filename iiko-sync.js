@@ -24,7 +24,7 @@ async function main() {
   console.log(`Syncing iiko data for date: ${date}`);
 
   // 1. Get token
-  const tokenRes = await fetch('https://api.iiko.services/api/1/access_token', {
+  const tokenRes = await fetch('https://api-ru.iiko.services/api/1/access_token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ apiLogin: IIKO_API_LOGIN })
@@ -38,7 +38,7 @@ async function main() {
   const dateFrom = `${date}T00:00:00.000`;
   const dateTo = `${date}T23:59:59.000`;
 
-  const reportRes = await fetch('https://api.iiko.services/api/1/reports/olap', {
+  const reportRes = await fetch('https://api-ru.iiko.services/api/1/reports/olap', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
